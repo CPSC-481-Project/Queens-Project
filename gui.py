@@ -35,8 +35,36 @@ for i in range(0, 8):
 chess_board_surface = pygame.Surface(size)
 chess_board_surface.fill(white)
 
-for chess_rect in rect_list:
-    pygame.draw.rect(chess_board_surface, black, chess_rect)
+# counts all the queens on the board
+def queen_loc(screen):
+    n = len(screen)
+    loc = 0
+    
+    for i in range(n):
+        if screen[i] != -1:
+            loc += 1
+        
+    return loc
+
+def validMove(self, pos, loc):
+    conflict = 0  #conflict between queens if near the movememnt of one another
+    board = self.screen
+    col = 0
+
+    for queen_loc in pos:
+        
+        for i in range(col - 1, -1, -1):
+            if board[loc][i] == 1:
+                conflict += 1 
+
+        for i, j in zip(range(loc - 1, -1, -1), range(col - 1, -1, -1)):
+            if board[i][j] == 1:
+                conflict += 1
+        for i, j, in zip(range(loc, - 1, self.screen, -1), range(col - 1, -1, -1)):
+            if board[i][j] == 1:
+                conflict += 1
+        col += 1
+    return conflict  #suppose to return 0 to represent that there are no hits within this algorithm
 
 # Game Loop
 while True:
