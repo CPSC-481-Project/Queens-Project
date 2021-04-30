@@ -63,6 +63,26 @@ from search import *
 
 
 # ======================= Genetic Algorithm =======================
+
+
+# TODO: THOUGHT PROCESS OF GA
+'''  
+GA()
+   initialize population - DONE
+   find fitness of population - DONE
+   
+   while (termination criteria is reached) do
+      parent selection
+      crossover with probability pc
+      mutation with probability pm
+      decode and fitness calculation
+      survivor selection
+      find best
+   return best
+   
+'''
+
+
 def genetic_search(problem, ngen=1000, pmut=0.1, n=20):
     """Call genetic_algorithm on the appropriate parts of a problem.
     This requires the problem to have states that can mate and mutate,
@@ -74,11 +94,7 @@ def genetic_search(problem, ngen=1000, pmut=0.1, n=20):
     # NOTE: WHAT IS THE INITIAL STATE OF A NQUEENS PROBLEM?
     s = problem.initial
     states = [problem.result(s, a) for a in problem.actions(s)]
-    # Creates the
-    print(states)
-    print()
     random.shuffle(states)
-    print(problem.value)
     return genetic_algorithm(states[:n], problem.value, gene_pool=[0, 1], f_thres=None)
 
 
@@ -88,45 +104,42 @@ def random_chromosome(size):  # making random chromosomes
 
 def genetic_algorithm(population, fitness_fn, gene_pool=[0, 1], f_thres=None, ngen=1000, pmut=0.1):
     """[Figure 4.8]"""
+    pop_num = len(population)
+    # prob = NQueensProblem(length)
     print("-GENETIC ALGORITHM RUN-")
 
     # GENE POOL UPDATE ACCORDINGLY:
-    gene = []
-    i = 1
-    for x in range(len(population)):
-        gene.append(i)
-        i = i+1
+    gene_pool = range(pop_num)
 
-    gene_pool = gene
-
-    population1 = init_population(len(population), gene_pool, len(population))
+    # INITIAL POPULATION OF CANDIDATE SOLUTIONS:
+    population1 = init_population(pop_num, gene_pool, pop_num)
     print(population1)
 
-    # print(gene_pool)
-    # initial_pop = []
-    # for x in range(2):
-    #     initial_pop.append(init_population(1, gene_pool, len(population)))
-    #     print(initial_pop)
+    print()
+    # FIND FITNESS OF INITIALIZE POPULATION:
+    print("FITNESS:")
+    fitness_population = np.zeros([len(population1), 1])
+    for i, individual in enumerate(population1):
+        temp = individual
 
-    # weight = select(random.randrange(0, len(gene_pool)),
-    #                 initial_pop, fitness_fn)
-    # # print(initial_pop)
-    # print()
-    # print(weight)
-    # population2 = []
+        # Check for any queens conflicting one another ---idk if we're suppose to implement here or Class NQueens has something
 
-    # for i in range(ngen):
-    # population = [mutate(recombine(*select(2, population, fitness_fn)), gene_pool, pmut)
+        # Took the horizontal and diagonal checks on internet
+        horizontal_queen_checks = len(temp) - len(set(temp))
+        diagonal_queen_checks = 0
+        for x in range(len(temp)):
+            for y in range(x + 1, len(temp)):
+                if temp[y] == temp[x] + y - x or temp[y] == temp[x] - y + x:
+                    diagonal_queen_checks += 1
 
-    #               for i in range(len(population))]
-    #     print()
-    # print("POPULATION:")
-    # print(population)
-    # #  NOTE: Utilizes Mutate first to get the population of the problem....missing items for weight perhaps?
+        # Find the fitness of the population using the fitness function
+        fitness_population[i] = 1 / \
+            ((horizontal_queen_checks+diagonal_queen_checks) + 1)
+    print(fitness_population)
 
-    # fittest_individual = fitness_threshold(fitness_fn, f_thres, population)
-    # if fittest_individual:
-    #     return fittest_individual
+    # NOTE: WHAT IS f_thres???? What does fitness_threshold do -- Find the most fit within population1
+
+    print()
 
     # return max(population, key=fitness_fn)
     return None
@@ -138,6 +151,7 @@ def fitness_threshold(fitness_fn, f_thres, population):
         return None
 
     fittest_individual = max(population, key=fitness_fn)
+    print(fittest_individual)
     if fitness_fn(fittest_individual) >= f_thres:
         return fittest_individual
 
