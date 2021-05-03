@@ -99,7 +99,9 @@ def genetic_search(problem, ngen=1000, pmut=0.1, n=20):
     state_num = len(states)
 
     # GENE POOL UPDATE ACCORDINGLY:
-    gene_pool = range(state_num)
+    gene_pool = range(1, state_num+1)
+    print("GENE:")
+    print(gene_pool)
 
     # INITIAL POPULATION OF CANDIDATE SOLUTIONS:
     population1 = init_population(
@@ -181,9 +183,12 @@ def genetic_algorithm(population, fitness_fn, gene_pool=[0, 1], f_thres=None, ng
 
     new_population = []
     for i in range(ngen):
+        # Does a selection of two individuals
         sel = select(2, ind_list, fitness_fn)
         print(sel)
         selected = []
+
+        # Find the matchin list on population bc Recombine is stupid
         for k in range(len(sel)):
             for j in range(len(population)):
                 if sel[k].state == population[j]:
@@ -192,16 +197,15 @@ def genetic_algorithm(population, fitness_fn, gene_pool=[0, 1], f_thres=None, ng
         print("SELECTED LIST:")
         print(selected)
 
+        # Recombines the two selected individuals
         recomb = recombine(*selected)
         print(recomb)
+
+        # Mutation.....possible issue here or recomb
         new_population = [mutate(recomb, gene_pool, pmut)
                           for i in range(len(population))]
         # print(population)
         print(new_population)
-
-        # fittest_individual = fitness_threshold(fitness_fn, f_thres, population)
-        # if fittest_individual:
-        #     print(fittest_individual)
 
     # for i in range(ngen):
     #     population = [mutate(recombine(*select(2, population, fitness_fn)), gene_pool, pmut)
@@ -211,9 +215,6 @@ def genetic_algorithm(population, fitness_fn, gene_pool=[0, 1], f_thres=None, ng
         if fittest_individual:
             print(fittest_individual)
     # return fittest_individual
-
-
-#     return max(population, key=fitness_fn)
 
     # return max(population, key=fitness_fn)
     return None
