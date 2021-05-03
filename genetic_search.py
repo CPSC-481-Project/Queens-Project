@@ -69,7 +69,7 @@ from search import *
 '''  
 GA()
    initialize population - DONE
-   find fitness of population - DONE
+   find fitness of population - **NEED TINKERING. Use h function from class Nqueens to find any conflics**
    
    while (termination criteria is reached) do
       parent selection
@@ -95,7 +95,40 @@ def genetic_search(problem, ngen=1000, pmut=0.1, n=20):
     s = problem.initial
     states = [problem.result(s, a) for a in problem.actions(s)]
     random.shuffle(states)
-    return genetic_algorithm(states[:n], problem.value, gene_pool=[0, 1], f_thres=None)
+
+    state_num = len(states)
+
+    # GENE POOL UPDATE ACCORDINGLY:
+    gene_pool = range(state_num)
+
+    # INITIAL POPULATION OF CANDIDATE SOLUTIONS:
+    population1 = init_population(
+        state_num, gene_pool, state_num)
+
+    # FIND CONFLICTS OF INITIALIZED POPULATION
+    conflicts = []
+    for index in range(state_num):
+        individual = Node(population1[index])
+        conflicts.append(problem.h(individual))
+        print(individual)
+    print()
+    print("CONFLICTS FROM NQUEEN:")
+    print(conflicts)
+    print()
+
+    # CALCULATE THE FITNESS OF THE POPULATION USING AMOUNT OF CONFLICTS
+    fitness_population = []
+    for x in range(len(conflicts)):
+        fitness_population.append(1 / ((conflicts[x]) + 1))
+    print("CALCULATING FITNESS WITH CONFLICTS:")
+    print(fitness_population)
+    print()
+
+    # FINDING FITNESS THRESHOLD
+
+    # return genetic_algorithm(states[:n], problem.value, gene_pool, f_thres=None)
+    # print(problem.value)
+    return genetic_algorithm(population1, problem.value, gene_pool, f_thres=None)
 
 
 def random_chromosome(size):  # making random chromosomes
@@ -104,42 +137,54 @@ def random_chromosome(size):  # making random chromosomes
 
 def genetic_algorithm(population, fitness_fn, gene_pool=[0, 1], f_thres=None, ngen=1000, pmut=0.1):
     """[Figure 4.8]"""
-    pop_num = len(population)
-    # prob = NQueensProblem(length)
-    print("-GENETIC ALGORITHM RUN-")
+    # pop_num = len(population)
+    # # prob = NQueensProblem(length)
+    # print("-GENETIC ALGORITHM RUN-")
 
-    # GENE POOL UPDATE ACCORDINGLY:
-    gene_pool = range(pop_num)
+    # # GENE POOL UPDATE ACCORDINGLY:
+    # gene_pool = range(pop_num)
 
-    # INITIAL POPULATION OF CANDIDATE SOLUTIONS:
-    population1 = init_population(pop_num, gene_pool, pop_num)
-    print(population1)
+    # # INITIAL POPULATION OF CANDIDATE SOLUTIONS:
+    # population1 = init_population(pop_num, gene_pool, pop_num)
+    # print(population)
 
-    print()
-    # FIND FITNESS OF INITIALIZE POPULATION:
-    print("FITNESS:")
-    fitness_population = np.zeros([len(population1), 1])
-    for i, individual in enumerate(population1):
-        temp = individual
+    # print()
+    # # FIND FITNESS OF INITIALIZE POPULATION:
+    # print("FITNESS:")
+    # fitness_population = np.zeros([len(population), 1])
+    # for i, individual in enumerate(population):
+    #     temp = individual
 
-        # Check for any queens conflicting one another ---idk if we're suppose to implement here or Class NQueens has something
+    # print(fitness_population)
 
-        # Took the horizontal and diagonal checks on internet
-        horizontal_queen_checks = len(temp) - len(set(temp))
-        diagonal_queen_checks = 0
-        for x in range(len(temp)):
-            for y in range(x + 1, len(temp)):
-                if temp[y] == temp[x] + y - x or temp[y] == temp[x] - y + x:
-                    diagonal_queen_checks += 1
+    #     # Check for any queens conflicting one another ---idk if we're suppose to implement here or Class NQueens has something
 
-        # Find the fitness of the population using the fitness function
-        fitness_population[i] = 1 / \
-            ((horizontal_queen_checks+diagonal_queen_checks) + 1)
-    print(fitness_population)
+    #     # Took the horizontal and diagonal checks on internet
+    #     horizontal_queen_checks = len(temp) - len(set(temp))
+    #     diagonal_queen_checks = 0
+    #     for x in range(len(temp)):
+    #         for y in range(x + 1, len(temp)):
+    #             if temp[y] == temp[x] + y - x or temp[y] == temp[x] - y + x:
+    #                 diagonal_queen_checks += 1
+
+    #     # Find the fitness of the population using the fitness function
+    #     fitness_population[i] = 1 / \
+    #         ((horizontal_queen_checks+diagonal_queen_checks) + 1)
+    # print(fitness_population)
 
     # NOTE: WHAT IS f_thres???? What does fitness_threshold do -- Find the most fit within population1
 
     print()
+
+#     for i in range(ngen):
+#         population = [mutate(recombine(*select(2, population, fitness_fn)), gene_pool, pmut)
+#                       for i in range(len(population))]
+
+#         fittest_individual = fitness_threshold(fitness_fn, f_thres, population)
+#         if fittest_individual:
+#             return fittest_individual
+
+#     return max(population, key=fitness_fn)
 
     # return max(population, key=fitness_fn)
     return None
