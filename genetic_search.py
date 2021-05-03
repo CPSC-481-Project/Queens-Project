@@ -66,11 +66,11 @@ from search import *
 
 
 # TODO: THOUGHT PROCESS OF GA
-'''  
+'''
 GA()
    initialize population - DONE
-   find fitness of population - **NEED TINKERING. Use h function from class Nqueens to find any conflics**
-   
+   find fitness of population - DONE
+
    while (termination criteria is reached) do
       parent selection
       crossover with probability pc
@@ -79,7 +79,7 @@ GA()
       survivor selection
       find best
    return best
-   
+
 '''
 
 
@@ -105,12 +105,32 @@ def genetic_search(problem, ngen=1000, pmut=0.1, n=20):
     population1 = init_population(
         state_num, gene_pool, state_num)
 
+    # return genetic_algorithm(states[:n], problem.value, gene_pool, f_thres=None)
+    print(problem.h)
+    print()
+    return genetic_algorithm(population1, problem.h, gene_pool, f_thres=None)
+
+
+def random_chromosome(size):  # making random chromosomes
+    return [random.randint(1, size) for _ in range(size)]
+
+
+def genetic_algorithm(population, fitness_fn, gene_pool=[0, 1], f_thres=None, ngen=1000, pmut=0.1):
+    """[Figure 4.8]"""
+
+    print("-GENETIC ALGORITHM RUN-")
+    pop_len = len(population)
+
     # FIND CONFLICTS OF INITIALIZED POPULATION
     conflicts = []
-    for index in range(state_num):
-        individual = Node(population1[index])
-        conflicts.append(problem.h(individual))
+    ind_list = []
+    for index in range(pop_len):
+        individual = Node(population[index])
+        ind_list.append(individual)
+        conflicts.append(fitness_fn(individual))
         print(individual)
+
+    print(ind_list)
     print()
     print("CONFLICTS FROM NQUEEN:")
     print(conflicts)
@@ -123,23 +143,6 @@ def genetic_search(problem, ngen=1000, pmut=0.1, n=20):
     print("CALCULATING FITNESS WITH CONFLICTS:")
     print(fitness_population)
     print()
-
-    # FINDING FITNESS THRESHOLD
-
-    # return genetic_algorithm(states[:n], problem.value, gene_pool, f_thres=None)
-    # print(problem.value)
-    return genetic_algorithm(population1, problem.value, gene_pool, f_thres=None)
-
-
-def random_chromosome(size):  # making random chromosomes
-    return [random.randint(1, size) for _ in range(size)]
-
-
-def genetic_algorithm(population, fitness_fn, gene_pool=[0, 1], f_thres=None, ngen=1000, pmut=0.1):
-    """[Figure 4.8]"""
-    # pop_num = len(population)
-    # # prob = NQueensProblem(length)
-    # print("-GENETIC ALGORITHM RUN-")
 
     # # GENE POOL UPDATE ACCORDINGLY:
     # gene_pool = range(pop_num)
@@ -176,13 +179,39 @@ def genetic_algorithm(population, fitness_fn, gene_pool=[0, 1], f_thres=None, ng
 
     print()
 
-#     for i in range(ngen):
-#         population = [mutate(recombine(*select(2, population, fitness_fn)), gene_pool, pmut)
-#                       for i in range(len(population))]
+    new_population = []
+    for i in range(ngen):
+        sel = select(2, ind_list, fitness_fn)
+        print(sel)
+        selected = []
+        for k in range(len(sel)):
+            for j in range(len(population)):
+                if sel[k].state == population[j]:
+                    selected.append(population[j])
 
-#         fittest_individual = fitness_threshold(fitness_fn, f_thres, population)
-#         if fittest_individual:
-#             return fittest_individual
+        print("SELECTED LIST:")
+        print(selected)
+
+        recomb = recombine(*selected)
+        print(recomb)
+        new_population = [mutate(recomb, gene_pool, pmut)
+                          for i in range(len(population))]
+        # print(population)
+        print(new_population)
+
+        # fittest_individual = fitness_threshold(fitness_fn, f_thres, population)
+        # if fittest_individual:
+        #     print(fittest_individual)
+
+    # for i in range(ngen):
+    #     population = [mutate(recombine(*select(2, population, fitness_fn)), gene_pool, pmut)
+    #                   for i in range(len(population))]
+
+        fittest_individual = fitness_threshold(fitness_fn, f_thres, population)
+        if fittest_individual:
+            print(fittest_individual)
+    # return fittest_individual
+
 
 #     return max(population, key=fitness_fn)
 
@@ -192,8 +221,8 @@ def genetic_algorithm(population, fitness_fn, gene_pool=[0, 1], f_thres=None, ng
 
 def fitness_threshold(fitness_fn, f_thres, population):
     print("-FITNESS_THRESHOLD-")
-    if not f_thres:
-        return None
+    # if not f_thres:
+    #     return None
 
     fittest_individual = max(population, key=fitness_fn)
     print(fittest_individual)
