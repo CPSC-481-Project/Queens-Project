@@ -96,40 +96,24 @@ def genetic_search(problem, ngen=1000, pmut=0.1, n=20):
     states = [problem.result(s, a) for a in problem.actions(s)]
     random.shuffle(states)
 
-    state_num = len(states)
+    state_len = len(states)
 
-    # GENE POOL UPDATE ACCORDINGLY:
-    gene_pool = range(1, state_num+1)
+    # GENE POOL UPDATE ACCORDINGLY (1 to 8 for default):
+    gene_pool = range(state_len)
     print("GENE:")
     print(gene_pool)
 
     # INITIAL POPULATION OF CANDIDATE SOLUTIONS:
     population1 = init_population(
-        state_num, gene_pool, state_num)
-
-    # return genetic_algorithm(states[:n], problem.value, gene_pool, f_thres=None)
-    print(problem.h)
-    print()
-    return genetic_algorithm(population1, problem.h, gene_pool, f_thres=None)
-
-
-def random_chromosome(size):  # making random chromosomes
-    return [random.randint(1, size) for _ in range(size)]
-
-
-def genetic_algorithm(population, fitness_fn, gene_pool=[0, 1], f_thres=None, ngen=1000, pmut=0.1):
-    """[Figure 4.8]"""
-
-    print("-GENETIC ALGORITHM RUN-")
-    pop_len = len(population)
+        state_len, gene_pool, state_len)
 
     # FIND CONFLICTS OF INITIALIZED POPULATION
     conflicts = []
     ind_list = []
-    for index in range(pop_len):
-        individual = Node(population[index])
+    for index in range(state_len):
+        individual = Node(population1[index])
         ind_list.append(individual)
-        conflicts.append(fitness_fn(individual))
+        conflicts.append(problem.h(individual))
         print(individual)
 
     print(ind_list)
@@ -146,36 +130,22 @@ def genetic_algorithm(population, fitness_fn, gene_pool=[0, 1], f_thres=None, ng
     print(fitness_population)
     print()
 
-    # # GENE POOL UPDATE ACCORDINGLY:
-    # gene_pool = range(pop_num)
+    # return genetic_algorithm(states[:n], problem.value, gene_pool, f_thres=None)
+    print(problem.h)
+    print()
+    return genetic_algorithm(ind_list, problem.h, gene_pool, f_thres=5)
 
-    # # INITIAL POPULATION OF CANDIDATE SOLUTIONS:
-    # population1 = init_population(pop_num, gene_pool, pop_num)
-    # print(population)
 
-    # print()
-    # # FIND FITNESS OF INITIALIZE POPULATION:
-    # print("FITNESS:")
-    # fitness_population = np.zeros([len(population), 1])
-    # for i, individual in enumerate(population):
-    #     temp = individual
+def random_chromosome(size):  # making random chromosomes
+    return [random.randint(1, size) for _ in range(size)]
 
-    # print(fitness_population)
 
-    #     # Check for any queens conflicting one another ---idk if we're suppose to implement here or Class NQueens has something
+def genetic_algorithm(population, fitness_fn, gene_pool=[0, 1], f_thres=None, ngen=5, pmut=0.1):
+    # originally ngen=1000
+    """[Figure 4.8]"""
 
-    #     # Took the horizontal and diagonal checks on internet
-    #     horizontal_queen_checks = len(temp) - len(set(temp))
-    #     diagonal_queen_checks = 0
-    #     for x in range(len(temp)):
-    #         for y in range(x + 1, len(temp)):
-    #             if temp[y] == temp[x] + y - x or temp[y] == temp[x] - y + x:
-    #                 diagonal_queen_checks += 1
-
-    #     # Find the fitness of the population using the fitness function
-    #     fitness_population[i] = 1 / \
-    #         ((horizontal_queen_checks+diagonal_queen_checks) + 1)
-    # print(fitness_population)
+    print("-GENETIC ALGORITHM RUN-")
+    # pop_len = len(population)
 
     # NOTE: WHAT IS f_thres???? What does fitness_threshold do -- Find the most fit within population1
 
@@ -183,47 +153,42 @@ def genetic_algorithm(population, fitness_fn, gene_pool=[0, 1], f_thres=None, ng
 
     new_population = []
     for i in range(ngen):
+        # NOTE: Seperated Select and recombine from mutate to run properly
+
         # Does a selection of two individuals
-        sel = select(2, ind_list, fitness_fn)
+        sel = select(2, population, fitness_fn)
         print(sel)
-        selected = []
-
-        # Find the matchin list on population bc Recombine is stupid
-        for k in range(len(sel)):
-            for j in range(len(population)):
-                if sel[k].state == population[j]:
-                    selected.append(population[j])
-
-        print("SELECTED LIST:")
-        print(selected)
 
         # Recombines the two selected individuals
-        recomb = recombine(*selected)
+        recomb = recombine(sel[0].state, sel[1].state)
         print(recomb)
 
         # Mutation.....possible issue here or recomb
         new_population = [mutate(recomb, gene_pool, pmut)
                           for i in range(len(population))]
-        # print(population)
+        print("PRINTING NEW POPULATION:")
         print(new_population)
 
-    # for i in range(ngen):
-    #     population = [mutate(recombine(*select(2, population, fitness_fn)), gene_pool, pmut)
-    #                   for i in range(len(population))]
+        # NOTE: ORIGINAL CODE DOWN HERE
+        # population = [mutate(recombine(*select(2, population, fitness_fn)), gene_pool, pmut)
+        #               for i in range(len(population))]
 
         fittest_individual = fitness_threshold(fitness_fn, f_thres, population)
+        print("RETURN TO GENETIC ALGO FROM FITNESS_THRESHOLD:")
         if fittest_individual:
-            print(fittest_individual)
-    # return fittest_individual
+            print("RETURNING FITTEST INDIVIDUAL TO MAIN:")
+            return fittest_individual
 
-    # return max(population, key=fitness_fn)
-    return None
+        print("MAX:")
+        print(max(population, key=fitness_fn))
+
+    return max(population, key=fitness_fn)
 
 
 def fitness_threshold(fitness_fn, f_thres, population):
     print("-FITNESS_THRESHOLD-")
-    # if not f_thres:
-    #     return None
+    if not f_thres:
+        return None
 
     fittest_individual = max(population, key=fitness_fn)
     print(fittest_individual)
@@ -279,6 +244,9 @@ def recombine_uniform(x, y):
 def mutate(x, gene_pool, pmut):
     print("-MUTATE-")
     if random.uniform(0, 1) >= pmut:
+        print("random.uni:")
+        print(x)
+        print()
         return x
 
     n = len(x)
@@ -287,6 +255,8 @@ def mutate(x, gene_pool, pmut):
     r = random.randrange(0, g)
 
     new_gene = gene_pool[r]
+    print("NEW GENE:")
+    print(new_gene)
     return x[: c] + [new_gene] + x[c + 1:]
 
 
@@ -297,4 +267,38 @@ if __name__ == '__main__':
     print()
     prob = NQueensProblem(size)
     print(prob.initial)
-    genetic_search(prob)
+    print()
+    print("-GENETIC SEARCH END RESULT-")
+    print(genetic_search(prob))
+
+
+# # GENE POOL UPDATE ACCORDINGLY:
+    # gene_pool = range(pop_num)
+
+    # # INITIAL POPULATION OF CANDIDATE SOLUTIONS:
+    # population1 = init_population(pop_num, gene_pool, pop_num)
+    # print(population)
+
+    # print()
+    # # FIND FITNESS OF INITIALIZE POPULATION:
+    # print("FITNESS:")
+    # fitness_population = np.zeros([len(population), 1])
+    # for i, individual in enumerate(population):
+    #     temp = individual
+
+    # print(fitness_population)
+
+    #     # Check for any queens conflicting one another ---idk if we're suppose to implement here or Class NQueens has something
+
+    #     # Took the horizontal and diagonal checks on internet
+    #     horizontal_queen_checks = len(temp) - len(set(temp))
+    #     diagonal_queen_checks = 0
+    #     for x in range(len(temp)):
+    #         for y in range(x + 1, len(temp)):
+    #             if temp[y] == temp[x] + y - x or temp[y] == temp[x] - y + x:
+    #                 diagonal_queen_checks += 1
+
+    #     # Find the fitness of the population using the fitness function
+    #     fitness_population[i] = 1 / \
+    #         ((horizontal_queen_checks+diagonal_queen_checks) + 1)
+    # print(fitness_population)
