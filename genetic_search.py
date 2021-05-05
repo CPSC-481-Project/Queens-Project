@@ -116,83 +116,110 @@ def genetic_search(problem, ngen=1000, pmut=0.1, n=20):
         conflicts.append(problem.h(individual))
         print(individual)
 
-    print(ind_list)
     print()
     print("CONFLICTS FROM NQUEEN:")
     print(conflicts)
     print()
 
-    # CALCULATE THE FITNESS OF THE POPULATION USING AMOUNT OF CONFLICTS
-    fitness_population = []
+    # FIND THE BEST FITNESS OF THE POPULATION USING AMOUNT OF CONFLICTS
+    best_fit = 0
     for x in range(len(conflicts)):
-        fitness_population.append(1 / ((conflicts[x]) + 1))
-    print("CALCULATING FITNESS WITH CONFLICTS:")
-    print(fitness_population)
+        fitness = (1 / ((conflicts[x]) + 1))
+        if best_fit < fitness:
+            best_fit = fitness
+    print("CALCULATING BEST FITNESS WITH CONFLICTS:")
+    print(best_fit)
     print()
 
     # return genetic_algorithm(states[:n], problem.value, gene_pool, f_thres=None)
     print(problem.h)
     print()
-    return genetic_algorithm(ind_list, problem.h, gene_pool, f_thres=5)
+    return genetic_algorithm(ind_list, problem.h, gene_pool, f_thres=best_fit)
 
 
 def random_chromosome(size):  # making random chromosomes
     return [random.randint(1, size) for _ in range(size)]
 
 
-def genetic_algorithm(population, fitness_fn, gene_pool=[0, 1], f_thres=None, ngen=5, pmut=0.1):
+def genetic_algorithm(population, fitness_fn, gene_pool=[0, 1], f_thres=None, ngen=1000, pmut=0.1):
     # originally ngen=1000
     """[Figure 4.8]"""
 
     print("-GENETIC ALGORITHM RUN-")
-    # pop_len = len(population)
 
-    # NOTE: WHAT IS f_thres???? What does fitness_threshold do -- Find the most fit within population1
-
-    print()
-
-    new_population = []
     for i in range(ngen):
+        print("FOR LOOP STARTING GA COUNTER = " + str(i))
         # NOTE: Seperated Select and recombine from mutate to run properly
 
-        # Does a selection of two individuals
-        sel = select(2, population, fitness_fn)
-        print(sel)
-
-        # Recombines the two selected individuals
-        recomb = recombine(sel[0].state, sel[1].state)
-        print(recomb)
-
         # Mutation.....possible issue here or recomb
-        new_population = [mutate(recomb, gene_pool, pmut)
+        # for x in range(len(population)):
+        # Does a selection of two individuals
+        # sel = select(2, population, fitness_fn)
+        # print(sel)
+        # # Recombines the two selected individuals
+        # recomb = recombine(sel[0].state, sel[1].state)
+        # print(recomb)
+        # # new_population.append(mutate(recomb, gene_pool, pmut))
+        # new_population = ([mutate(recomb, gene_pool, pmut)
+        #                    for i in range(len(population))])
+
+        # print(new_population)
+
+        # NOTE: ORIGINAL CODE DOWN HERE
+        new_population = [mutate(recombine(*select(2, population, fitness_fn)), gene_pool, pmut)
                           for i in range(len(population))]
         print("PRINTING NEW POPULATION:")
         print(new_population)
 
-        # NOTE: ORIGINAL CODE DOWN HERE
-        # population = [mutate(recombine(*select(2, population, fitness_fn)), gene_pool, pmut)
-        #               for i in range(len(population))]
+        fittest_individual = fitness_threshold(
+            fitness_fn, f_thres, new_population)
 
-        fittest_individual = fitness_threshold(fitness_fn, f_thres, population)
-        print("RETURN TO GENETIC ALGO FROM FITNESS_THRESHOLD:")
+        print()
+        print("-RETURN TO GENETIC ALGO FROM FITNESS_THRESHOLD W/ FITTEST_INDIVIDUAL-")
+
+        # print(fittest_individual)
         if fittest_individual:
             print("RETURNING FITTEST INDIVIDUAL TO MAIN:")
             return fittest_individual
 
-        print("MAX:")
-        print(max(population, key=fitness_fn))
+    print("MAX:")
+    print(max(population, key=fitness_fn))
 
     return max(population, key=fitness_fn)
 
 
 def fitness_threshold(fitness_fn, f_thres, population):
     print("-FITNESS_THRESHOLD-")
+    for i in range(len(population)):
+        population[i] = Node(population[i])
+
+    print("NODE IN FITNESS:")
+    print(population)
+
+    # NOTE: UNCOMMENT TO CHECK IF IT IS GETTING MAX IN FITTEST INDIVIDUAL
+    # for x in range(len(population)):
+    #     pop = fitness_fn(population[x])
+    #     print(population[x])
+    #     print(pop)
+
+    # NOTE: OG CODE BELOW
     if not f_thres:
         return None
 
-    fittest_individual = max(population, key=fitness_fn)
+    # (1 / ((conflicts[x]) + 1)
+
+    fittest_individual = min(population, key=fitness_fn)
+    print("FITTEST INDIVIDUAL IN F_THRES:")
     print(fittest_individual)
-    if fitness_fn(fittest_individual) >= f_thres:
+    if (1/(fitness_fn(fittest_individual) + 1)) >= f_thres:
+        print("CHECKING FITNESS_FN FUNCTION IN F_THRES:")
+        print("---AMOUNT OF CONFLICTS IN FITTEST INDIVIDUAL:")
+        print(fitness_fn(fittest_individual))
+        print("---FITNESS OF FITTEST INDIVIDUAL:")
+        print((1/(fitness_fn(fittest_individual) + 1)))
+        print("---F_THRES COMPARED TO FITNESS OF FITTEST INDIVIDUAL:")
+        print(f_thres)
+        # NOTE: OG CODE BELOW
         return fittest_individual
 
     return None
@@ -219,13 +246,22 @@ def select(r, population, fitness_fn):
     print("-SELECT-")
     fitnesses = map(fitness_fn, population)
     sampler = weighted_sampler(population, fitnesses)
-    return [sampler() for i in range(r)]
+
+    node_select = [sampler() for i in range(r)]
+    print(node_select)
+    list_select = []
+
+    for i in range(2):
+        list_select.append(node_select[i].state)
+    # print(list_select)
+    return list_select
 
 
 def recombine(x, y):
     print("-RECOMBINE-")
     n = len(x)
     c = random.randrange(0, n)
+    print(x[: c] + y[c:])
     return x[: c] + y[c:]
 
 
@@ -268,7 +304,7 @@ if __name__ == '__main__':
     prob = NQueensProblem(size)
     print(prob.initial)
     print()
-    print("-GENETIC SEARCH END RESULT-")
+    print("-- GENETIC SEARCH END RESULT --")
     print(genetic_search(prob))
 
 
