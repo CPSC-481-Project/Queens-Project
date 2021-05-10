@@ -72,15 +72,33 @@ GA()
    find fitness of population - DONE
 
    while (termination criteria is reached) do
-      parent selection
-      crossover with probability pc
-      mutation with probability pm
-      decode and fitness calculation
+      parent selection -DONE
+      crossover with probability pc AKA RECOMBINE - DONE
+      mutation with probability pm -DONE
+      decode and fitness calculation AKA F-thres from Genetic_Search - Done
+
+      ---BELOW IS BASICALLY FItness_Threshold FUNCTION ----
       survivor selection
       find best
+      -Done
+
    return best
 
 '''
+
+# def the_better_h(individual):
+#     # Took the horizontal and diagonal checks on internet
+#     conflicts = 0
+#     horizontal_queen_checks = len(individual) - len(set(individual))
+#     diagonal_queen_checks = 0
+#     for x in range(len(individual)):
+#         for y in range(x + 1, len(individual)):
+#             if individual[y] == individual[x] + y - x or individual[y] == individual[x] - y + x:
+#                 diagonal_queen_checks += 1
+
+#     conflicts = horizontal_queen_checks + diagonal_queen_checks
+
+#     return conflicts
 
 
 def genetic_search(problem, ngen=1000, pmut=0.1, n=20):
@@ -102,7 +120,7 @@ def genetic_search(problem, ngen=1000, pmut=0.1, n=20):
     gene_pool = range(state_len)
     print("GENE:")
     print(gene_pool)
-
+    best_fit = 0
     # INITIAL POPULATION OF CANDIDATE SOLUTIONS:
     population1 = init_population(
         state_len, gene_pool, state_len)
@@ -112,21 +130,19 @@ def genetic_search(problem, ngen=1000, pmut=0.1, n=20):
     ind_list = []
     for index in range(state_len):
         individual = Node(population1[index])
+        # individual = population1[index]
         ind_list.append(individual)
         conflicts.append(problem.h(individual))
+        # conflicts.append(the_better_h(individual))
         print(individual)
 
     print()
     print("CONFLICTS FROM NQUEEN:")
     print(conflicts)
+    print(min(conflicts))
+    best_fit = (1 / (min(conflicts) + 1))
     print()
 
-    # FIND THE BEST FITNESS OF THE POPULATION USING AMOUNT OF CONFLICTS
-    best_fit = 0
-    for x in range(len(conflicts)):
-        fitness = (1 / ((conflicts[x]) + 1))
-        if best_fit < fitness:
-            best_fit = fitness
     print("CALCULATING BEST FITNESS WITH CONFLICTS:")
     print(best_fit)
     print()
@@ -137,19 +153,15 @@ def genetic_search(problem, ngen=1000, pmut=0.1, n=20):
     return genetic_algorithm(ind_list, problem.h, gene_pool, f_thres=best_fit)
 
 
-def random_chromosome(size):  # making random chromosomes
-    return [random.randint(1, size) for _ in range(size)]
-
-
 def genetic_algorithm(population, fitness_fn, gene_pool=[0, 1], f_thres=None, ngen=1000, pmut=0.1):
     # originally ngen=1000
     """[Figure 4.8]"""
 
     print("-GENETIC ALGORITHM RUN-")
-
+    minFit = f_thres
     for i in range(ngen):
         print("FOR LOOP STARTING GA COUNTER = " + str(i))
-        # NOTE: Seperated Select and recombine from mutate to run properly
+        # NOTE: Seperated Select and recombine from mutate to visually see what is going on
 
         # Mutation.....possible issue here or recomb
         # for x in range(len(population)):
@@ -166,26 +178,38 @@ def genetic_algorithm(population, fitness_fn, gene_pool=[0, 1], f_thres=None, ng
         # print(new_population)
 
         # NOTE: ORIGINAL CODE DOWN HERE
-        new_population = [mutate(recombine(*select(2, population, fitness_fn)), gene_pool, pmut)
-                          for i in range(len(population))]
+        population = [mutate(recombine(*select(2, population, fitness_fn)), gene_pool, pmut)
+                      for i in range(len(population))]
         print("PRINTING NEW POPULATION:")
-        print(new_population)
+        print(population)
 
         fittest_individual = fitness_threshold(
-            fitness_fn, f_thres, new_population)
+            fitness_fn, f_thres,  population)
 
         print()
         print("-RETURN TO GENETIC ALGO FROM FITNESS_THRESHOLD W/ FITTEST_INDIVIDUAL-")
 
-        # print(fittest_individual)
-        if fittest_individual:
+        print(fittest_individual)
+
+        if (1/(fitness_fn(fittest_individual) + 1)) > f_thres:
             print("RETURNING FITTEST INDIVIDUAL TO MAIN:")
-            return fittest_individual
+            # return fittest_individual
+            minFit = fittest_individual
+            f_thres = (1/(fitness_fn(fittest_individual) + 1))
 
-    print("MAX:")
-    print(max(population, key=fitness_fn))
+        if f_thres == 1.0:
+            print("RETURNING MINFIT == 1.0")
+            print(minFit)
+            return minFit
 
-    return max(population, key=fitness_fn)
+        # Go through the loop till we reach 1.0 threshold or run out of ngen and return the biggest threshhold reached
+
+    print("MinFit:")
+    print(minFit)
+    print(f_thres)
+
+    # return max(population, key=fitness_fn)
+    return minFit
 
 
 def fitness_threshold(fitness_fn, f_thres, population):
@@ -206,8 +230,6 @@ def fitness_threshold(fitness_fn, f_thres, population):
     if not f_thres:
         return None
 
-    # (1 / ((conflicts[x]) + 1)
-
     fittest_individual = min(population, key=fitness_fn)
     print("FITTEST INDIVIDUAL IN F_THRES:")
     print(fittest_individual)
@@ -222,7 +244,7 @@ def fitness_threshold(fitness_fn, f_thres, population):
         # NOTE: OG CODE BELOW
         return fittest_individual
 
-    return None
+    return fittest_individual
 
 
 def init_population(pop_number, gene_pool, state_length):
@@ -253,7 +275,7 @@ def select(r, population, fitness_fn):
 
     for i in range(2):
         list_select.append(node_select[i].state)
-    # print(list_select)
+    print(list_select)
     return list_select
 
 
@@ -304,37 +326,7 @@ if __name__ == '__main__':
     prob = NQueensProblem(size)
     print(prob.initial)
     print()
+    print("-- CALLING GENETIC SEARCH START --")
+    result = genetic_search(prob)
+    print(result)
     print("-- GENETIC SEARCH END RESULT --")
-    print(genetic_search(prob))
-
-
-# # GENE POOL UPDATE ACCORDINGLY:
-    # gene_pool = range(pop_num)
-
-    # # INITIAL POPULATION OF CANDIDATE SOLUTIONS:
-    # population1 = init_population(pop_num, gene_pool, pop_num)
-    # print(population)
-
-    # print()
-    # # FIND FITNESS OF INITIALIZE POPULATION:
-    # print("FITNESS:")
-    # fitness_population = np.zeros([len(population), 1])
-    # for i, individual in enumerate(population):
-    #     temp = individual
-
-    # print(fitness_population)
-
-    #     # Check for any queens conflicting one another ---idk if we're suppose to implement here or Class NQueens has something
-
-    #     # Took the horizontal and diagonal checks on internet
-    #     horizontal_queen_checks = len(temp) - len(set(temp))
-    #     diagonal_queen_checks = 0
-    #     for x in range(len(temp)):
-    #         for y in range(x + 1, len(temp)):
-    #             if temp[y] == temp[x] + y - x or temp[y] == temp[x] - y + x:
-    #                 diagonal_queen_checks += 1
-
-    #     # Find the fitness of the population using the fitness function
-    #     fitness_population[i] = 1 / \
-    #         ((horizontal_queen_checks+diagonal_queen_checks) + 1)
-    # print(fitness_population)
