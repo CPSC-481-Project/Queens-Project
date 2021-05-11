@@ -87,15 +87,12 @@ GA()
 '''
 
 
-def genetic_search(problem, ngen=1000, pmut=0.1, n=20):
+def genetic_search(problem, ngen=10, pmut=0.1, n=20):
     """Call genetic_algorithm on the appropriate parts of a problem.
     This requires the problem to have states that can mate and mutate,
     plus a value method that scores states."""
 
-    # NOTE: This is not tested and might not work.
-    # TODO: Use this function to make Problems work with genetic_algorithm.
-
-    # NOTE: WHAT IS THE INITIAL STATE OF A NQUEENS PROBLEM?
+    loop = ngen
     s = problem.initial
     states = [problem.result(s, a) for a in problem.actions(s)]
     random.shuffle(states)
@@ -130,7 +127,7 @@ def genetic_search(problem, ngen=1000, pmut=0.1, n=20):
     best_fit = (1 / (min(conflicts) + 1))
     print()
 
-    return genetic_algorithm(ind_list, problem.h, gene_pool, f_thres=best_fit)
+    return genetic_algorithm(ind_list, problem.h, gene_pool, f_thres=best_fit, ngen=ngen)
 
 
 def genetic_algorithm(population, fitness_fn, gene_pool=[0, 1], f_thres=None, ngen=1000, pmut=0.1):
@@ -176,7 +173,6 @@ def genetic_algorithm(population, fitness_fn, gene_pool=[0, 1], f_thres=None, ng
     minFit = fittest_individual
     print(minFit)
 
-    # return max(population, key=fitness_fn)
     return minFit
 
 
@@ -291,11 +287,13 @@ if __name__ == '__main__':
     # initial = 8
     size = eval(input(" - Please input the size of the board (4~15): "))
     print()
+    ngen = eval(input(" - Please input the n amount of loop to do GA: "))
+    print()
     prob = NQueensProblem(size)
     print(prob.initial)
     print()
     print("-- INITIATING GENETIC SEARCH ALGORITHM --")
-    result = genetic_search(prob)
+    result = genetic_search(prob, ngen)
     print("-- FINISHED FINDING NQUEEN RESULT --")
 
     print(result)
