@@ -192,6 +192,10 @@ def weighted_sampler(seq, weights):
     totals = []
     for w in weights:
         totals.append(w + totals[-1] if totals else w)
+    #print("Totals:")
+    #print(totals[-1])
+    totals[-1] = abs(totals[-1]) #FIX BECAUSE N=4 WASN'T WORKING. CPSC 481 PROJECT FOR USE CASE OF N = 4
+    #This can't be negative! So set it to be absolute
     return lambda: seq[bisect.bisect(totals, random.uniform(0, totals[-1]))]
 
 

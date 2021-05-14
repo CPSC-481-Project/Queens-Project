@@ -1,5 +1,7 @@
 from search import *
 from utils import *
+import time
+
 
 def genetic_search(problem, ngen=1000, pmut=0.1, n=20):
     """Call genetic_algorithm on the appropriate parts of a problem.
@@ -20,14 +22,19 @@ def genetic_search(problem, ngen=1000, pmut=0.1, n=20):
 
 def genetic_algorithm(population, fitness_fn, gene_pool=[0, 1], f_thres=None, ngen=1000, pmut=0.1):
     """[Figure 4.8]"""
+    start = time.time()
     for i in range(ngen):
         population = [mutate(recombine(*select(2, population, fitness_fn)), gene_pool, pmut)
                       for i in range(len(population))]
 
         fittest_individual = fitness_threshold(fitness_fn, f_thres, population)
         if fittest_individual:
+            end = time.time()
+            print("Time elapsed: " + str(end - start))
             return fittest_individual
 
+    end = time.time()
+    print("Time elapsed: " + str(end - start))  
     return max(population, key=fitness_fn)
 
 
@@ -99,7 +106,7 @@ if __name__ == '__main__':
     ngen = eval(input(" - Please input the n amount of loop to do GA: "))
     print()
     prob = NQueensProblem(size)
-    print(prob.initial)
+    print("INITIAL STATE: " + str(prob.initial))
     print()
     print("-- INITIATING GENETIC SEARCH ALGORITHM --")
     result = genetic_search(prob, ngen)
