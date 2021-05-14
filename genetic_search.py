@@ -1,15 +1,21 @@
+from search import *
+from utils import *
+
 def genetic_search(problem, ngen=1000, pmut=0.1, n=20):
     """Call genetic_algorithm on the appropriate parts of a problem.
     This requires the problem to have states that can mate and mutate,
     plus a value method that scores states."""
+    maxConflict = (problem.N * (problem.N - 1)) / 2 #get the most amount of conflicts. Found from resource - totaldatascience.com
+    print("Maximum conflicts " + str(maxConflict))
+    gene_pool = [x for x in range(problem.N)] #Get hte gene pool and use its length to have the length of each individual
 
-    # NOTE: This is not tested and might not work.
-    # TODO: Use this function to make Problems work with genetic_algorithm.
+    # print("GENEPOOL : " + str(gene_pool))
+    # print("LENGTH GENE POOL : " + str(len(gene_pool)))
+    
+    population1 = init_population(n, gene_pool, len(gene_pool))
+    print("POPULATION" + str(population1))
 
-    s = problem.initial_state
-    states = [problem.result(s, a) for a in problem.actions(s)]
-    random.shuffle(states)
-    return genetic_algorithm(states[:n], problem.value, ngen, pmut)
+    return genetic_algorithm(population1, problem.h, gene_pool, f_thres=maxConflict, ngen = ngen)
 
 
 def genetic_algorithm(population, fitness_fn, gene_pool=[0, 1], f_thres=None, ngen=1000, pmut=0.1):
@@ -84,3 +90,29 @@ def mutate(x, gene_pool, pmut):
 
     new_gene = gene_pool[r]
     return x[:c] + [new_gene] + x[c + 1:]
+
+
+if __name__ == '__main__':
+    # initial = 8
+    size = eval(input(" - Please input the size of the board (4~15): "))
+    print()
+    ngen = eval(input(" - Please input the n amount of loop to do GA: "))
+    print()
+    prob = NQueensProblem(size)
+    print(prob.initial)
+    print()
+    print("-- INITIATING GENETIC SEARCH ALGORITHM --")
+    result = genetic_search(prob, ngen)
+    print("-- FINISHED FINDING NQUEEN RESULT --")
+
+    #print(result)
+    length = len(result)
+
+    board = [[0 for x in range(length)] for y in range(length)]
+    colC = 0
+    for rowC in result:
+        board[rowC][colC] = 1
+        colC += 1
+
+    for x in board:
+        print(x)
